@@ -4,6 +4,8 @@
 [![Docker](https://img.shields.io/static/v1?label=docker-compose&message=3.7&color=informational)](https://hub.docker.com/u/juftin)
 [![License](https://img.shields.io/static/v1?label=license&message=MIT&color=informational)](LICENSE.md)
 
+[<img src="https://upload.wikimedia.org/wikipedia/commons/d/de/AirflowLogo.png" width="350" alt="Denver">](https://airflow.apache.org/)
+
 This repository is some experimental work being performed on Airflow. 
 At the root of is the [airflow.yml](airflow.yml) file which is a 
 [docker-compose](https://docs.docker.com/compose/) configuration file.
