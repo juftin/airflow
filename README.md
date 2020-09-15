@@ -1,11 +1,8 @@
 # airflow
 
-<img src="https://img.shields.io/badge/docker-ready-blue.svg"/>
 
-<img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="https://github.com/juftin/airflow/blob/master/LICENSE.md"/>
-
-<br/>
-<br/>
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
 This repository is some experimental work being performed on Airflow. 
 At the root of is the [airflow.yml](airflow.yml) file which is a 
@@ -51,8 +48,6 @@ Helpful Links:
         
 <br/>
 <br/>
-
-###### Cool stuff happens in Denver, CO <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Flag_of_Denver%2C_Colorado.svg/800px-Flag_of_Denver%2C_Colorado.svg.png" width=25/>
-
 <br/>
-<br/>
+
+###### Cool stuff happens in Denver, CO <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Flag_of_Denver%2C_Colorado.svg/800px-Flag_of_Denver%2C_Colorado.svg.png" width="25" alt="Denver">
