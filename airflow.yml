@@ -55,7 +55,10 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB:       ${POSTGRES_DB}
         volumes:
-            - ${DOCKER_DIR}/airflow/:/usr/local/airflow/
+            - ${DOCKER_DIR}/airflow/dags/:/usr/local/airflow/dags/
+            - ${DOCKER_DIR}/airflow/logs/:/usr/local/airflow/logs/
+            - ${DOCKER_DIR}/airflow/airflow.cfg:/usr/local/airflow/airflow.cfg
+            - ${DOCKER_DIR}/airflow/unittests.cfg:/usr/local/airflow/unittests.cfg
         command: webserver
         logging:
             options:
