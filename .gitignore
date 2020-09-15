@@ -1,0 +1,5 @@
+.idea/
+/airflow/logs/
+postgres/config/
+/airflow/airflow-webserver.pid
+.env
