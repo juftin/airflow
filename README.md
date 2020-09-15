@@ -2,8 +2,10 @@
 
 <img src="https://img.shields.io/badge/docker-ready-blue.svg"/>
 
-<br>
-<br>
+<img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="https://github.com/juftin/airflow/blob/master/LICENSE.md"/>
+
+<br/>
+<br/>
 
 This repository is some experimental work being performed on Airflow. 
 At the root of is the [airflow.yml](airflow.yml) file which is a 
@@ -16,9 +18,11 @@ file which has a temporary placeholder, [example.env](example.env).
 
 #### Services
 
+- webserver
+    - [traefik:v2.2](https://hub.docker.com/_/traefik)
 - airflow
     - [puckel/docker-airflow:1.10.9](https://hub.docker.com/r/puckel/docker-airflow)
- - airflow backend database
+- airflow backend database
     - [postgres:9.6](https://hub.docker.com/_/postgres)
 
 
@@ -35,7 +39,9 @@ file which has a temporary placeholder, [example.env](example.env).
     ```bash
    docker-compose up
    ```
-   
+4) Launch Airflow @ [http://airflow.localhost/](http://airflow.localhost/)
+5) Optionally, monitor webserver @ [http://traefik.localhost/](http://traefik.localhost/)
+
 <br/>
    
 Helpful Links:
