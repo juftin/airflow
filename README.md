@@ -1,5 +1,6 @@
 # airflow
 
+[![Airflow](https://img.shields.io/static/v1?label=juftin/airflow&message=0.02&color=informational)](/)
 [![Docker](https://img.shields.io/static/v1?label=docker-compose&message=3.7&color=informational)](https://hub.docker.com/u/juftin)
 [![License](https://img.shields.io/static/v1?label=license&message=MIT&color=informational)](LICENSE.md)
 
@@ -21,8 +22,7 @@ file which has a temporary placeholder, [example.env](example.env).
 - airflow backend database
     - [postgres:9.6](https://hub.docker.com/_/postgres)
 
-
-<img src="https://www.pngitem.com/pimgs/m/27-272595_docker-compose-docker-compose-logo-hd-png-download.png" alt="drawing" width="400"/>
+[<img src="https://miro.medium.com/max/453/1*QVFjsW8gyIXeCUJucmK4XA.png" alt="docker-compose" width="400"/>](https://docs.docker.com/compose/)
 
 ### Startup
 
