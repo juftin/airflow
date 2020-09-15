@@ -1,8 +1,7 @@
 # airflow
 
-
-[![](https://img.shields.io/badge/docker-ready-blue.svg)]()
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+[![Docker](https://img.shields.io/static/v1?label=docker-compose&message=3.7&color=informational)](https://hub.docker.com/u/juftin)
+[![License](https://img.shields.io/static/v1?label=license&message=MIT&color=informational)](LICENSE.md)
 
 This repository is some experimental work being performed on Airflow. 
 At the root of is the [airflow.yml](airflow.yml) file which is a 
