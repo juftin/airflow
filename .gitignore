@@ -2,3 +2,4 @@
 /logs/
 postgres/config/
 /airflow-webserver.pid
+.env
