@@ -19,6 +19,8 @@ services:
         networks:
             traefik:
                 ipv4_address: ${TRAEFIK_SUBNET}.3
+            internal:
+                ipv4_address: ${INTERNAL_SUBNET}.3
         labels:
             traefik.enable:                                         true
             traefik.http.routers.traefik.rule:                      Host(`traefik.localhost`)
