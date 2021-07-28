@@ -1,6 +1,6 @@
 .idea/
 /airflow/logs/
-postgres/config/
+postgres/
 /airflow/airflow-webserver.pid
 .env
 /airflow/.cache/

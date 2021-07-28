@@ -1,0 +1,145 @@
+version: '3.7'
+
+x-airflow-common:
+  &airflow-common
+    image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.1.2}
+    environment:
+      &airflow-common-env
+        AIRFLOW__CORE__EXECUTOR:                    CeleryExecutor
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN:            postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
+        AIRFLOW__CELERY__RESULT_BACKEND:            db+postgresql://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
+        AIRFLOW__CELERY__BROKER_URL:                redis://:@redis:6379/0
+        AIRFLOW__CORE__FERNET_KEY:                  ''
+        AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+        AIRFLOW__CORE__LOAD_EXAMPLES:               'true'
+        AIRFLOW__API__AUTH_BACKEND:                 'airflow.api.auth.backend.basic_auth'
+        _PIP_ADDITIONAL_REQUIREMENTS:               ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    volumes:
+        - ${DOCKER_DIRECTORY}/airflow/dags:/opt/airflow/dags
+        - ${DOCKER_DIRECTORY}/airflow/logs:/opt/airflow/logs
+        - ${DOCKER_DIRECTORY}/airflow/plugins:/opt/airflow/plugins
+    user:  "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
+    depends_on:
+        redis:
+            condition: service_healthy
+        postgres:
+            condition: service_healthy
+
+services:
+    postgres:
+        image:   postgres:13
+        environment:
+            POSTGRES_USER:     airflow
+            POSTGRES_PASSWORD: airflow
+            POSTGRES_DB:       airflow
+        volumes:
+            - ${DOCKER_DIRECTORY}/postgres:/var/lib/postgresql/data
+        healthcheck:
+            test: [ "CMD", "pg_isready", "-U", "airflow" ]
+            interval: 5s
+            retries:  5
+        networks:
+            airflow: null
+        restart: always
+
+    redis:
+        image:   redis:latest
+        ports:
+            - 6379:6379
+        healthcheck:
+            test: [ "CMD", "redis-cli", "ping" ]
+            interval: 5s
+            timeout:  30s
+            retries:  50
+        networks:
+            airflow: null
+        restart: always
+
+    airflow-webserver:
+        <<: *airflow-common
+        command: webserver
+        ports:
+            - 8080:8080
+        healthcheck:
+            test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
+            interval: 10s
+            timeout:  10s
+            retries:  5
+        restart: always
+        networks:
+            traefik: null
+            airflow: null
+        labels:
+            traefik.enable:                                             true
+            traefik.http.routers.airflow-rtr.rule:                      Host(`${AIRFLOW_SUBDOMAIN:-airflow}.${DOMAIN_NAME}`)
+            traefik.http.routers.airflow-rtr.service:                   airflow-svc
+            traefik.http.services.airflow-svc.loadbalancer.server.port: 8080
+            traefik.http.routers.airflow-rtr.entrypoints:               http
+            traefik.http.routers.airflow-rtr.middlewares:               chain-local-testing@file
+
+    airflow-scheduler:
+        <<: *airflow-common
+        command: scheduler
+        healthcheck:
+            test: [ "CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"' ]
+            interval: 10s
+            timeout:  10s
+            retries:  5
+        networks:
+            airflow: null
+        restart: always
+
+    airflow-worker:
+        <<: *airflow-common
+        command: celery worker
+        healthcheck:
+            test:
+                - "CMD-SHELL"
+                - 'celery --app airflow.executors.celery_executor.app inspect ping -d "celery@$${HOSTNAME}"'
+            interval: 10s
+            timeout:  10s
+            retries:  5
+        networks:
+            airflow: null
+        restart: always
+
+    airflow-init:
+        <<: *airflow-common
+        command: version
+        environment:
+            <<: *airflow-common-env
+            _AIRFLOW_DB_UPGRADE:        'true'
+            _AIRFLOW_WWW_USER_CREATE:   'true'
+            _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
+            _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
+        networks:
+            airflow: null
+
+    flower:
+        <<: *airflow-common
+        command: celery flower
+        ports:
+            - 5555:5555
+        healthcheck:
+            test: [ "CMD", "curl", "--fail", "http://localhost:5555/" ]
+            interval: 10s
+            timeout:  10s
+            retries:  5
+        networks:
+            airflow: null
+        restart: always
+        labels:
+            traefik.enable:                                            true
+            traefik.http.routers.flower-rtr.rule:                      Host(`${FLOWER_SUBDOMAIN:-flower}.${DOMAIN_NAME}`)
+            traefik.http.routers.flower-rtr.service:                   flower-svc
+            traefik.http.services.flower-svc.loadbalancer.server.port: 5555
+            traefik.http.routers.flower-rtr.entrypoints:               http
+            traefik.http.routers.flower-rtr.middlewares:               chain-local-testing@file
+
+networks:
+
+    traefik:
+        external:
+            name: traefik_reverse-proxy
+    airflow:
+        driver: bridge
