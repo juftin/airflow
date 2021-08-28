@@ -4,3 +4,4 @@ postgres/
 /airflow-config/airflow-webserver.pid
 .env
 /airflow-config/.cache/
+connections.yml

@@ -2,23 +2,22 @@ version: '3.7'
 
 x-airflow-common:
   &airflow-common
-    image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.1.2-python3.8}
+    image: juftin/airflow:latest
+    build:
+        context:    .
+        dockerfile: Dockerfile
     environment:
       &airflow-common-env
-        AIRFLOW__CORE__EXECUTOR:                    CeleryExecutor
-        AIRFLOW__CORE__SQL_ALCHEMY_CONN:            postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
-        AIRFLOW__CELERY__RESULT_BACKEND:            db+postgresql://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
-        AIRFLOW__CELERY__BROKER_URL:                redis://:@redis:6379/0
-        AIRFLOW__CORE__FERNET_KEY:                  ''
-        AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-        AIRFLOW__CORE__LOAD_EXAMPLES:               'true'
-        AIRFLOW__API__AUTH_BACKEND:                 'airflow.api.auth.backend.basic_auth'
-        _PIP_ADDITIONAL_REQUIREMENTS:               ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+        AIRFLOW__CORE__EXECUTOR:         CeleryExecutor
+        AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
+        AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${POSTGRES_USER:-airflow}:${POSTGRES_PASSWORD:-airflow}@postgres/${POSTGRES_DB:-airflow}
+        AIRFLOW__CELERY__BROKER_URL:     redis://:@redis:6379/0
+        AIRFLOW__CORE__FERNET_KEY:       ${AIRFLOW_FERNET_KEY}
     volumes:
-        - ${DOCKER_DIRECTORY}/airflow-config/dags:/opt/airflow/dags
-        - ${DOCKER_DIRECTORY}/airflow-config/logs:/opt/airflow/logs
-        - ${DOCKER_DIRECTORY}/airflow-config/plugins:/opt/airflow/plugins
-    user:  "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
+        - ${DOCKER_DIRECTORY:-.}/airflow-config/dags:/opt/airflow/dags
+        - ${DOCKER_DIRECTORY:-.}/airflow-config/logs:/opt/airflow/logs
+        - ${DOCKER_DIRECTORY:-.}/airflow-config/plugins:/opt/airflow/plugins
+    user:  "${AIRFLOW_UID:-501}:0"
     depends_on:
         redis:
             condition: service_healthy
@@ -29,17 +28,19 @@ services:
     postgres:
         image:   postgres:13
         environment:
-            POSTGRES_USER:     airflow
-            POSTGRES_PASSWORD: airflow
-            POSTGRES_DB:       airflow
+            POSTGRES_USER:     ${POSTGRES_USER:-airflow}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-airflow}
+            POSTGRES_DB:       ${POSTGRES_DB:-airflow}
         volumes:
-            - ${DOCKER_DIRECTORY}/postgres:/var/lib/postgresql/data
+            - ${DOCKER_DIRECTORY:-.}/postgres:/var/lib/postgresql/data
         healthcheck:
-            test: [ "CMD", "pg_isready", "-U", "airflow" ]
+            test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-airflow}" ]
             interval: 5s
             retries:  5
         networks:
             airflow: null
+        ports:
+            - 5432:5432
         restart: always
 
     redis:
@@ -71,11 +72,11 @@ services:
             airflow: null
         labels:
             traefik.enable:                                             true
-            traefik.http.routers.airflow-rtr.rule:                      Host(`${AIRFLOW_SUBDOMAIN:-airflow}.${DOMAIN_NAME}`)
+            traefik.http.routers.airflow-rtr.rule:                      Host(`${AIRFLOW_SUBDOMAIN:-airflow}.${DOMAIN_NAME:-localhost}`)
             traefik.http.routers.airflow-rtr.service:                   airflow-svc
             traefik.http.services.airflow-svc.loadbalancer.server.port: 8080
             traefik.http.routers.airflow-rtr.entrypoints:               http
-            traefik.http.routers.airflow-rtr.middlewares:               chain-local-testing@file
+            traefik.http.routers.airflow-rtr.middlewares:               ${TRAEFIK_SECURITY_POLICY:-chain-local-testing@file}
 
     airflow-scheduler:
         <<: *airflow-common
@@ -130,7 +131,7 @@ services:
         restart: always
         labels:
             traefik.enable:                                            true
-            traefik.http.routers.flower-rtr.rule:                      Host(`${FLOWER_SUBDOMAIN:-flower}.${DOMAIN_NAME}`)
+            traefik.http.routers.flower-rtr.rule:                      Host(`${FLOWER_SUBDOMAIN:-flower}.${DOMAIN_NAME:-localhost}`)
             traefik.http.routers.flower-rtr.service:                   flower-svc
             traefik.http.services.flower-svc.loadbalancer.server.port: 5555
             traefik.http.routers.flower-rtr.entrypoints:               http
